@@ -26,6 +26,18 @@ set confirm
 set mouse=a
 " Command window height is 2 lines
 set cmdheight=2
-" Display line numbers
+" Show 'hybrid' mode numbers where current line is absolute and all others are
+" relative.
 set number
+set relativenumber
 
+" Toggle between relative and absolute line numbering
+function! RelativeNumberToggle()
+	if(&relativenumber == 1)
+		set norelativenumber
+	else
+		set relativenumber
+	endif
+endfunc
+
+nnoremap <C-n> :call RelativeNumberToggle()<cr>
