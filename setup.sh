@@ -56,17 +56,25 @@ function remove_all_lines_in_range() {
 }
 
 # TODO: put these in a .properties file
-BOUNDARY="#|-|-|-|#"
-HEADER="${BOUNDARY} profile setup header ${BOUNDARY}"
-FOOTER="${BOUNDARY} profile setup footer ${BOUNDARY}"
+#BOUNDARY="#|-|-|-|#"
+#HEADER="${BOUNDARY} profile setup header ${BOUNDARY}"
+#FOOTER="${BOUNDARY} profile setup footer ${BOUNDARY}"
 
-PROFILE=""
-EXISTY=0
-HEADER_EXISTS=5
-FOOTER_EXISTS=5
+#PROFILE=""
+#EXISTY=0
+#HEADER_EXISTS=5
+#FOOTER_EXISTS=5
 
-COPY_CONF_TO="$(pwd)/tmp"
-COPY_BIN_TO="$(pwd)/tmp/bin"
+#COPY_CONF_TO="$(pwd)/tmp"
+#COPY_BIN_TO="$(pwd)/tmp/bin"
+if [ -f "./profile.properties" ]
+then
+	. ./profile.properties
+else
+	printf "error: missing properties file\n"
+	exit 1
+fi
+
 CONF_ARR=()
 BIN_ARR=()
 
