@@ -40,7 +40,7 @@ function remove_single_line_from_file() {
 		echo "There was a problem opening the file for modification '${1}'"
 		exit 1
 	fi
-	sed --quiet -i -e "s|${2}||" ${1}
+	sed -i -e "s|${2}||" ${1}
 }
 
 BOUNDARY="#-/-/-/#"
