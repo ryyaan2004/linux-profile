@@ -40,10 +40,22 @@ function remove_single_line_from_file() {
 		echo "There was a problem opening the file for modification '${1}'"
 		exit 1
 	fi
-	sed -i -e "s|${2}||" ${1}
+	sed -i -e "s/${2}//" ${1}
 }
 
-BOUNDARY="#-/-/-/#"
+function remove_all_lines_in_range() {
+# $1 the file
+# $2 the starting pattern
+# $3 the ending pattern
+	if [ ! -f "${1}" ]
+	then
+		echo "There was a problem opening the file for modification '${1}'"
+		exit 1
+	fi
+	sed -i -e "/${2}/,/${3}/c\ " ${1}
+}
+
+BOUNDARY="#|-|-|-|#"
 HEADER="${BOUNDARY} profile setup header ${BOUNDARY}"
 FOOTER="${BOUNDARY} profile setup footer ${BOUNDARY}"
 
@@ -81,7 +93,7 @@ echo "FOOTER_EXISTS=${FOOTER_EXISTS}"
 if [ "${HEADER_EXISTS}" -eq "${EXISTY}" ] && [ "${FOOTER_EXISTS}" -eq "${EXISTY}" ]
 then
 	printf "this should be true, both exist\n"
-	#remove_all_lines_in_range "${PROFILE}" "${HEADER}" "${FOOTER}"
+	remove_all_lines_in_range "${PROFILE}" "${HEADER}" "${FOOTER}"
 elif [ "${FOOTER_EXISTS}" -eq "${EXISTY}" ]
 then
 	printf "existing profile in incompatible state, only the footer exists. please remove '${FOOTER}' and all managed data then rerun this script\n"
