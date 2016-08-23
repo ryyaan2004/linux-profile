@@ -64,7 +64,11 @@ PROFILE=""
 EXISTY=0
 HEADER_EXISTS=5
 FOOTER_EXISTS=5
-COPY_TO="$(pwd)/tmp"
+
+COPY_CONF_TO="$(pwd)/tmp"
+COPY_BIN_TO="$(pwd)/tmp/bin"
+CONF_ARR=()
+BIN_ARR=()
 
 PROFILE="$(pwd)/profile"
 if [ ! -f "${PROFILE}" ]
@@ -103,15 +107,43 @@ then
 else
 	printf "existing profile in incompatible state, only the header exists. please remove '${HEADER}' and all managed data then rerun this script\n"
 fi
-# insert the header, all settings, and the footer
-append_string_to_file "${PROFILE}" "${HEADER}"
-append_string_to_file "${PROFILE}" "this is where we would insert stuff\n"
-append_string_to_file "${PROFILE}" "seriously, in a live situation there would be stuff around this area\n"
-append_string_to_file "${PROFILE}" "\n\n"
-append_string_to_file "${PROFILE}" "${FOOTER}"
+# TODO insert the header, all settings, and the footer
+#append_string_to_file "${PROFILE}" "${HEADER}"
+#append_string_to_file "${PROFILE}" "this is where we would insert stuff\n"
+#append_string_to_file "${PROFILE}" "seriously, in a live situation there would be stuff around this area\n"
+#append_string_to_file "${PROFILE}" "\n\n"
+#append_string_to_file "${PROFILE}" "${FOOTER}"
 
+i=0
 # copy all from workspace/conf to HOME
 for file in $( ls -A conf/ )
-	do
-		cp "$(pwd)/conf/${file}" "${COPY_TO}/${file}"
-	done
+do
+	CONF_ARR[$i]="${COPY_CONF_TO}/${file}"
+	cp "$(pwd)/conf/${file}" ${CONF_ARR[$i]} #"${COPY_CONF_TO}/${file}"
+	(( i++ ))
+done
+
+i=0
+# copy all from workspace/bin to HOME/bin
+for file in $( ls -A bin/ )
+do
+	BIN_ARR[$i]="${COPY_BIN_TO}/${file}"
+	cp "$(pwd)/bin/${file}" ${BIN_ARR[$i]} #"${COPY_BIN_TO}/${file}"
+done
+
+# append header
+append_string_to_file "${PROFILE}" "${HEADER}"
+
+# append entries to source all newly copied files
+for entry in ${CONF_ARR[*]}
+do
+	append_string_to_file "${PROFILE}" ". ${entry}"
+done
+
+for entry in ${BIN_ARR[*]}
+do
+	append_string_to_file "${PROFILE}" ". ${entry}"
+done
+
+# append footer
+append_string_to_file "${PROFILE}" "${FOOTER}"
