@@ -134,12 +134,25 @@ append_string_to_file "${PROFILE}" "${HEADER}"
 # append entries to source all newly copied files
 for entry in ${CONF_ARR[*]}
 do
-	append_string_to_file "${PROFILE}" ". ${entry}"
+	filename=$(basename ${entry})
+	if [[ "${EXCLUSIONS}" =~ "${filename}" ]]
+	then
+		#echo "'${filename}' was in '${EXCLUSIONS}'"
+		:
+	else
+		append_string_to_file "${PROFILE}" ". ${entry}"
+	fi
 done
 
 for entry in ${BIN_ARR[*]}
 do
-	append_string_to_file "${PROFILE}" ". ${entry}"
+	filename=$(basename ${entry})
+	if [[ "${EXCLUSIONS}" =~ "${filename}" ]]
+	then
+		:
+	else
+		append_string_to_file "${PROFILE}" ". ${entry}"
+	fi
 done
 
 # append footer
