@@ -64,6 +64,7 @@ PROFILE=""
 EXISTY=0
 HEADER_EXISTS=5
 FOOTER_EXISTS=5
+COPY_TO="$(pwd)/tmp"
 
 PROFILE="$(pwd)/profile"
 if [ ! -f "${PROFILE}" ]
@@ -110,4 +111,7 @@ append_string_to_file "${PROFILE}" "\n\n"
 append_string_to_file "${PROFILE}" "${FOOTER}"
 
 # copy all from workspace/conf to HOME
-
+for file in $( ls -A conf/ )
+	do
+		cp "$(pwd)/conf/${file}" "${COPY_TO}/${file}"
+	done
