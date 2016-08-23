@@ -52,7 +52,7 @@ function remove_all_lines_in_range() {
 		echo "There was a problem opening the file for modification '${1}'"
 		exit 1
 	fi
-	sed -i -e "/${2}/,/${3}/c\ " ${1}
+	sed -i -e "/${2}/,/${3}/c\" ${1}
 }
 
 BOUNDARY="#|-|-|-|#"
@@ -107,3 +107,6 @@ append_string_to_file "${PROFILE}" "this is where we would insert stuff\n"
 append_string_to_file "${PROFILE}" "seriously, in a live situation there would be stuff around this area\n"
 append_string_to_file "${PROFILE}" "\n\n"
 append_string_to_file "${PROFILE}" "${FOOTER}"
+
+# copy all from workspace/conf to HOME
+
