@@ -48,6 +48,7 @@ HEADER="${BOUNDARY} profile setup header ${BOUNDARY}"
 FOOTER="${BOUNDARY} profile setup footer ${BOUNDARY}"
 
 PROFILE=""
+EXISTY=0
 HEADER_EXISTS=5
 FOOTER_EXISTS=5
 
@@ -76,12 +77,21 @@ test_for_line "${PROFILE}" "^${FOOTER}$"
 FOOTER_EXISTS=$?
 echo "FOOTER_EXISTS=${FOOTER_EXISTS}"
 
-# insert the header and footer as necessary
-remove_single_line_from_file "${PROFILE}" "${HEADER}"
-test_for_line "${PROFILE}" "^${HEADER}$"
-HEADER_EXISTS=$?
-echo "HEADER_EXISTS=${HEADER_EXISTS} after deletion"
-
-test_for_line "${PROFILE}" "^${FOOTER}$"
-FOOTER_EXISTS=$?
-echo "FOOTER_EXISTS=${FOOTER_EXISTS} after this line shouldn't have been deleted"
+# since the profile can get into inconsistent states, ensure that we can work with what's there
+if [ "${HEADER_EXISTS}" -eq "${EXISTY}" ] && [ "${FOOTER_EXISTS}" -eq "${EXISTY}" ]
+then
+	printf "this should be true, both exist\n"
+	#remove_all_lines_in_range "${PROFILE}" "${HEADER}" "${FOOTER}"
+elif [ "${FOOTER_EXISTS}" -eq "${EXISTY}" ]
+then
+	printf "existing profile in incompatible state, only the footer exists. please remove '${FOOTER}' and all managed data then rerun this script\n"
+	exit 1
+else
+	printf "existing profile in incompatible state, only the header exists. please remove '${HEADER}' and all managed data then rerun this script\n"
+fi
+# insert the header, all settings, and the footer
+append_string_to_file "${PROFILE}" "${HEADER}"
+append_string_to_file "${PROFILE}" "this is where we would insert stuff\n"
+append_string_to_file "${PROFILE}" "seriously, in a live situation there would be stuff around this area\n"
+append_string_to_file "${PROFILE}" "\n\n"
+append_string_to_file "${PROFILE}" "${FOOTER}"
