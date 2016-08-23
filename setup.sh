@@ -52,9 +52,10 @@ function remove_all_lines_in_range() {
 		echo "There was a problem opening the file for modification '${1}'"
 		exit 1
 	fi
-	sed -i -e "/${2}/,/${3}/c\" ${1}
+	sed -i -e "/${2}/,/${3}/c\ " ${1}
 }
 
+# TODO: put these in a .properties file
 BOUNDARY="#|-|-|-|#"
 HEADER="${BOUNDARY} profile setup header ${BOUNDARY}"
 FOOTER="${BOUNDARY} profile setup footer ${BOUNDARY}"
