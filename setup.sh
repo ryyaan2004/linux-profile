@@ -27,7 +27,6 @@ function test_for_line() {
 	then
 		return 1
 	else
-
 		return 0
 	fi
 }
@@ -83,20 +82,15 @@ else
 	exit 1
 fi
 
-#echo "profile='${PROFILE}'"
-
 test_for_line "${PROFILE}" "^${HEADER}$"
 HEADER_EXISTS=$?
-#echo "HEADER_EXISTS=${HEADER_EXISTS}"
 
 test_for_line "${PROFILE}" "^${FOOTER}$"
 FOOTER_EXISTS=$?
-#echo "FOOTER_EXISTS=${FOOTER_EXISTS}"
 
 # since the profile can get into inconsistent states, ensure that we can work with what's there
 if [ "${HEADER_EXISTS}" -eq "${EXISTY}" ] && [ "${FOOTER_EXISTS}" -eq "${EXISTY}" ]
 then
-	#printf "this should be true, both exist\n"
 	remove_all_lines_in_range "${PROFILE}" "${HEADER}" "${FOOTER}"
 elif [ "${FOOTER_EXISTS}" -eq "${EXISTY}" ]
 then
@@ -137,7 +131,6 @@ do
 	filename=$(basename ${entry})
 	if [[ "${EXCLUSIONS}" =~ "${filename}" ]]
 	then
-		#echo "'${filename}' was in '${EXCLUSIONS}'"
 		:
 	else
 		append_string_to_file "${PROFILE}" ". ${entry}"
