@@ -19,3 +19,10 @@ jd() {
 		cd **"/$1"
 	fi
 }
+
+_upto() {
+	local cur=${COMP_WORDS[COMP_CWORD]}
+	local d=${PWD//\//\ }
+	COMPREPLY=( $( compgen -W "$d" -- "$cur" ) )
+}
+complete -F _upto upto
