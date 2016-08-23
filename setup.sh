@@ -55,18 +55,6 @@ function remove_all_lines_in_range() {
 	sed -i -e "/${2}/,/${3}/c\ " ${1}
 }
 
-# TODO: put these in a .properties file
-#BOUNDARY="#|-|-|-|#"
-#HEADER="${BOUNDARY} profile setup header ${BOUNDARY}"
-#FOOTER="${BOUNDARY} profile setup footer ${BOUNDARY}"
-
-#PROFILE=""
-#EXISTY=0
-#HEADER_EXISTS=5
-#FOOTER_EXISTS=5
-
-#COPY_CONF_TO="$(pwd)/tmp"
-#COPY_BIN_TO="$(pwd)/tmp/bin"
 if [ -f "./profile.properties" ]
 then
 	. ./profile.properties
@@ -78,49 +66,49 @@ fi
 CONF_ARR=()
 BIN_ARR=()
 
-PROFILE="$(pwd)/profile"
-if [ ! -f "${PROFILE}" ]
+# check for the profile
+if [ -f "$HOME/.profile" ]
 then
-	touch "${PROFILE}"
-	append_string_to_file "${PROFILE}" "${HEADER}"
-	append_string_to_file "${PROFILE}" "this is a test message"
-	append_string_to_file "${PROFILE}" "${FOOTER}"
+	PROFILE="$HOME/.profile"
+elif [ -f "$HOME/.bash_profile" ]
+then
+	PROFILE="$HOME/.bash_profile"
 fi
-#if [ -f "$HOME/.profile" ]
-#then
-#	PROFILE="$HOME/.profile"
-#elif [ -f "$HOME/.bash_profile" ]
-#then
-#	PROFILE="$HOME/.bash_profile"
-#fi
 
-echo "profile='${PROFILE}'"
+if [ -f "${PROFILE}" ]
+then
+	cp "${PROFILE}" "${PROFILE}.bak"
+else
+	printf "Could not locate a profile"
+	exit 1
+fi
+
+#echo "profile='${PROFILE}'"
 
 test_for_line "${PROFILE}" "^${HEADER}$"
 HEADER_EXISTS=$?
-echo "HEADER_EXISTS=${HEADER_EXISTS}"
+#echo "HEADER_EXISTS=${HEADER_EXISTS}"
+
 test_for_line "${PROFILE}" "^${FOOTER}$"
 FOOTER_EXISTS=$?
-echo "FOOTER_EXISTS=${FOOTER_EXISTS}"
+#echo "FOOTER_EXISTS=${FOOTER_EXISTS}"
 
 # since the profile can get into inconsistent states, ensure that we can work with what's there
 if [ "${HEADER_EXISTS}" -eq "${EXISTY}" ] && [ "${FOOTER_EXISTS}" -eq "${EXISTY}" ]
 then
-	printf "this should be true, both exist\n"
+	#printf "this should be true, both exist\n"
 	remove_all_lines_in_range "${PROFILE}" "${HEADER}" "${FOOTER}"
 elif [ "${FOOTER_EXISTS}" -eq "${EXISTY}" ]
 then
 	printf "existing profile in incompatible state, only the footer exists. please remove '${FOOTER}' and all managed data then rerun this script\n"
 	exit 1
-else
+elif [ "${HEADER_EXISTS}" -eq "${EXISTY}" ]
+then
 	printf "existing profile in incompatible state, only the header exists. please remove '${HEADER}' and all managed data then rerun this script\n"
+	exit 1
+else
+	: 
 fi
-# TODO insert the header, all settings, and the footer
-#append_string_to_file "${PROFILE}" "${HEADER}"
-#append_string_to_file "${PROFILE}" "this is where we would insert stuff\n"
-#append_string_to_file "${PROFILE}" "seriously, in a live situation there would be stuff around this area\n"
-#append_string_to_file "${PROFILE}" "\n\n"
-#append_string_to_file "${PROFILE}" "${FOOTER}"
 
 i=0
 # copy all from workspace/conf to HOME
@@ -137,6 +125,7 @@ for file in $( ls -A bin/ )
 do
 	BIN_ARR[$i]="${COPY_BIN_TO}/${file}"
 	cp "$(pwd)/bin/${file}" ${BIN_ARR[$i]} #"${COPY_BIN_TO}/${file}"
+	(( i++ ))
 done
 
 # append header
@@ -155,3 +144,6 @@ done
 
 # append footer
 append_string_to_file "${PROFILE}" "${FOOTER}"
+
+# source the profile
+source ${PROFILE}
