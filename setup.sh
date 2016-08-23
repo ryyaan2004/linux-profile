@@ -40,7 +40,7 @@ function remove_single_line_from_file() {
 		echo "There was a problem opening the file for modification '${1}'"
 		exit 1
 	fi
-	sed --quiet "s/${2}//" ${1}
+	sed --quiet -i -e "s|${2}||" ${1}
 }
 
 BOUNDARY="#-/-/-/#"
@@ -72,9 +72,16 @@ echo "profile='${PROFILE}'"
 test_for_line "${PROFILE}" "^${HEADER}$"
 HEADER_EXISTS=$?
 echo "HEADER_EXISTS=${HEADER_EXISTS}"
-test_for_line "${PROFILE}" "${FOOTER}"
+test_for_line "${PROFILE}" "^${FOOTER}$"
 FOOTER_EXISTS=$?
 echo "FOOTER_EXISTS=${FOOTER_EXISTS}"
 
 # insert the header and footer as necessary
+remove_single_line_from_file "${PROFILE}" "${HEADER}"
+test_for_line "${PROFILE}" "^${HEADER}$"
+HEADER_EXISTS=$?
+echo "HEADER_EXISTS=${HEADER_EXISTS} after deletion"
 
+test_for_line "${PROFILE}" "^${FOOTER}$"
+FOOTER_EXISTS=$?
+echo "FOOTER_EXISTS=${FOOTER_EXISTS} after this line shouldn't have been deleted"
