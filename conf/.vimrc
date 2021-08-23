@@ -7,6 +7,8 @@ colo elflord
 filetype indent plugin on
 " Syntax highlighting
 syntax on
+" Sane default for yaml editing
+autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
 
 " Highlight searches
 set hlsearch
