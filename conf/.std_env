@@ -1,29 +1,4 @@
 export GIT_EDITOR=vim
 
 SSH_HOME="$HOME/.ssh"
-SSH_ENV="$SSH_HOME/agent-environment"
 
-function start_agent {
-        echo "Initialising new SSH agent..."
-        /usr/bin/ssh-agent | sed 's/^echo/#echo/' > "${SSH_ENV}"
-        echo succeeded
-        chmod 600 "${SSH_ENV}"
-        . "${SSH_ENV}" > /dev/null
-        /usr/bin/ssh-add;
-        for filename in $(ls "$SSH_HOME" | grep -E ".*_id_.*" | grep -v "\.")
-        do
-                /usr/bin/ssh-add "$SSH_HOME/$filename"
-        done
-}
-
-# EXPERIMENTAL, since we use this profile on systems we don't control, for now allow the new function to be called on demand but don't run automatically
-# Source SSH settings, if applicable
-#if [ -f "${SSH_ENV}" ]; then
-#        . "${SSH_ENV}" > /dev/null
-#        #ps ${SSH_AGENT_PID} doesn't work under cywgin
-#        ps -ef | grep ${SSH_AGENT_PID} | grep ssh-agent$ > /dev/null || {
-#                start_agent;
-#        }
-#else
-#        start_agent;
-#fi
