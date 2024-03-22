@@ -1,1 +1,23 @@
-alias l='ls -lA'
+if command -v eza > /dev/null
+then
+	alias l='eza -lah --icons --git'
+	alias la='eza -a'
+	alias ll='eza -lah'
+	alias ls='eza --color=auto'
+else
+	alias l='ls -lA'
+fi
+
+if command -v bat > /dev/null
+then
+	export BAT_STYLE='full'
+	alias cat='bat'
+fi
+
+if command -v gtop > /dev/null
+then
+	alias top='gtop'
+elif command -v htop > /dev/null
+then
+	alias top='htop'
+fi
