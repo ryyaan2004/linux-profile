@@ -127,6 +127,9 @@ while IFS= read -r -d '' filepath; do
 	(( i++ ))
 done < <(find conf/ -maxdepth 1 -type f -print0)
 
+# Ensure target directories exist
+mkdir -p "${COPY_BIN_TO}"
+
 i=0
 # copy all from workspace/bin to HOME/bin
 while IFS= read -r -d '' filepath; do
