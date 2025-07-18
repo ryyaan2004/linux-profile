@@ -143,25 +143,25 @@ done < <(find bin/ -maxdepth 1 -type f -print0)
 append_string_to_file "${PROFILE}" "${HEADER}"
 
 # append entries to source all newly copied files
-for entry in ${CONF_ARR[*]}
+for entry in "${CONF_ARR[@]}"
 do
-	filename=$(basename ${entry})
+	filename=$(basename "${entry}")
 	if [[ "${EXCLUSIONS}" =~ "${filename}" ]]
 	then
 		:
 	else
-		append_string_to_file "${PROFILE}" ". ${entry}"
+		append_string_to_file "${PROFILE}" ". \"${entry}\""
 	fi
 done
 
-for entry in ${BIN_ARR[*]}
+for entry in "${BIN_ARR[@]}"
 do
-	filename=$(basename ${entry})
+	filename=$(basename "${entry}")
 	if [[ "${EXCLUSIONS}" =~ "${filename}" ]]
 	then
 		:
 	else
-		append_string_to_file "${PROFILE}" ". ${entry}"
+		append_string_to_file "${PROFILE}" ". \"${entry}\""
 	fi
 done
 
