@@ -120,21 +120,21 @@ fi
 
 i=0
 # copy all from workspace/conf to HOME
-for file in $( ls -A conf/ )
-do
+while IFS= read -r -d '' filepath; do
+	file=$(basename "$filepath")
 	CONF_ARR[$i]="${COPY_CONF_TO}/${file}"
-	cp "$(pwd)/conf/${file}" ${CONF_ARR[$i]} #"${COPY_CONF_TO}/${file}"
+	cp "$filepath" "${CONF_ARR[$i]}"
 	(( i++ ))
-done
+done < <(find conf/ -maxdepth 1 -type f -print0)
 
 i=0
 # copy all from workspace/bin to HOME/bin
-for file in $( ls -A bin/ )
-do
+while IFS= read -r -d '' filepath; do
+	file=$(basename "$filepath")
 	BIN_ARR[$i]="${COPY_BIN_TO}/${file}"
-	cp "$(pwd)/bin/${file}" ${BIN_ARR[$i]} #"${COPY_BIN_TO}/${file}"
+	cp "$filepath" "${BIN_ARR[$i]}"
 	(( i++ ))
-done
+done < <(find bin/ -maxdepth 1 -type f -print0)
 
 # append header
 append_string_to_file "${PROFILE}" "${HEADER}"
