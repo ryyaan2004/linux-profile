@@ -1,5 +1,19 @@
 #!/bin/bash
 
+# Cross-platform sed -i function
+function sed_inplace() {
+# $1 the file to modify
+# $2 the sed expression
+	local file="${1}"
+	local expr="${2}"
+	
+	if [[ "$OSTYPE" == "darwin"* ]]; then
+		sed -i '' -e "${expr}" "${file}"
+	else
+		sed -i -e "${expr}" "${file}"
+	fi
+}
+
 function append_string_to_file() {
 # $1 the file to append to
 # $2 the message to append
@@ -39,7 +53,7 @@ function remove_single_line_from_file() {
 		echo "There was a problem opening the file for modification '${1}'"
 		exit 1
 	fi
-	sed -i.bak -e "s/${2}//" ${1}
+	sed_inplace "${1}" "s/${2}//"
 }
 
 function remove_all_lines_in_range() {
@@ -51,7 +65,7 @@ function remove_all_lines_in_range() {
 		echo "There was a problem opening the file for modification '${1}'"
 		exit 1
 	fi
-	sed -i.bak -e "/${2}/,/${3}/c\ " ${1}
+	sed_inplace "${1}" "/${2}/,/${3}/c\ "
 }
 
 if [ -f "./profile.properties" ]
