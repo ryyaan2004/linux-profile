@@ -39,7 +39,7 @@ function remove_single_line_from_file() {
 		echo "There was a problem opening the file for modification '${1}'"
 		exit 1
 	fi
-	sed -i -e "s/${2}//" ${1}
+	sed -i.bak -e "s/${2}//" ${1}
 }
 
 function remove_all_lines_in_range() {
@@ -51,7 +51,7 @@ function remove_all_lines_in_range() {
 		echo "There was a problem opening the file for modification '${1}'"
 		exit 1
 	fi
-	sed -i -e "/${2}/,/${3}/c\ " ${1}
+	sed -i.bak -e "/${2}/,/${3}/c\ " ${1}
 }
 
 if [ -f "./profile.properties" ]
