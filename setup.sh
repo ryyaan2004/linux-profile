@@ -119,52 +119,72 @@ else
 	: 
 fi
 
-i=0
-# copy all from workspace/conf to HOME
-while IFS= read -r -d '' filepath; do
-	file=$(basename "$filepath")
-	CONF_ARR[i]="${COPY_CONF_TO}/${file}"
-	cp "$filepath" "${CONF_ARR[$i]}"
-	(( i++ ))
-done < <(find conf/ -maxdepth 1 -type f -print0)
+# Check if conf directory exists and has files
+if [ ! -d "conf/" ]; then
+	printf "Warning: conf/ directory not found. No configuration files will be installed.\n"
+elif [ -z "$(find conf/ -maxdepth 1 -type f -print -quit)" ]; then
+	printf "Warning: conf/ directory is empty. No configuration files will be installed.\n"
+else
+	i=0
+	# copy all from workspace/conf to HOME
+	while IFS= read -r -d '' filepath; do
+		file=$(basename "$filepath")
+		CONF_ARR[i]="${COPY_CONF_TO}/${file}"
+		cp "$filepath" "${CONF_ARR[$i]}"
+		(( i++ ))
+	done < <(find conf/ -maxdepth 1 -type f -print0)
+	printf "Installed %d configuration files from conf/\n" "${#CONF_ARR[@]}"
+fi
 
-# Ensure target directories exist
-mkdir -p "${COPY_BIN_TO}"
-
-i=0
-# copy all from workspace/bin to HOME/bin
-while IFS= read -r -d '' filepath; do
-	file=$(basename "$filepath")
-	BIN_ARR[i]="${COPY_BIN_TO}/${file}"
-	cp "$filepath" "${BIN_ARR[$i]}"
-	(( i++ ))
-done < <(find bin/ -maxdepth 1 -type f -print0)
+# Check if bin directory exists and has files
+if [ ! -d "bin/" ]; then
+	printf "Warning: bin/ directory not found. No binary files will be installed.\n"
+elif [ -z "$(find bin/ -maxdepth 1 -type f -print -quit)" ]; then
+	printf "Warning: bin/ directory is empty. No binary files will be installed.\n"
+else
+	# Ensure target directories exist
+	mkdir -p "${COPY_BIN_TO}"
+	
+	i=0
+	# copy all from workspace/bin to HOME/bin
+	while IFS= read -r -d '' filepath; do
+		file=$(basename "$filepath")
+		BIN_ARR[i]="${COPY_BIN_TO}/${file}"
+		cp "$filepath" "${BIN_ARR[$i]}"
+		(( i++ ))
+	done < <(find bin/ -maxdepth 1 -type f -print0)
+	printf "Installed %d binary files from bin/\n" "${#BIN_ARR[@]}"
+fi
 
 # append header
 append_string_to_file "${PROFILE}" "${HEADER}"
 
 # append entries to source all newly copied files
-for entry in "${CONF_ARR[@]}"
-do
-	filename=$(basename "${entry}")
-	if [[ "${EXCLUSIONS}" =~ ${filename} ]]
-	then
-		:
-	else
-		append_string_to_file "${PROFILE}" ". \"${entry}\""
-	fi
-done
+if [ ${#CONF_ARR[@]} -gt 0 ]; then
+	for entry in "${CONF_ARR[@]}"
+	do
+		filename=$(basename "${entry}")
+		if [[ "${EXCLUSIONS}" =~ ${filename} ]]
+		then
+			:
+		else
+			append_string_to_file "${PROFILE}" ". \"${entry}\""
+		fi
+	done
+fi
 
-for entry in "${BIN_ARR[@]}"
-do
-	filename=$(basename "${entry}")
-	if [[ "${EXCLUSIONS}" =~ ${filename} ]]
-	then
-		:
-	else
-		append_string_to_file "${PROFILE}" ". \"${entry}\""
-	fi
-done
+if [ ${#BIN_ARR[@]} -gt 0 ]; then
+	for entry in "${BIN_ARR[@]}"
+	do
+		filename=$(basename "${entry}")
+		if [[ "${EXCLUSIONS}" =~ ${filename} ]]
+		then
+			:
+		else
+			append_string_to_file "${PROFILE}" ". \"${entry}\""
+		fi
+	done
+fi
 
 # append footer
 append_string_to_file "${PROFILE}" "${FOOTER}"
