@@ -34,7 +34,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --help)
-            sed -n '3,15p' "$0" | sed 's/^# //'
+            sed -n '3,15p' "$0" | sed 's/^# //' | sed 's/^#$//'
             exit 0
             ;;
         v*)
