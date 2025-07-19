@@ -6,6 +6,7 @@
 # Options:
 #   --auto      Automatically calculate version and create release without prompts
 #   --dry-run   Show what would happen without creating the release
+#   --force     Skip git working directory validation
 #   --help      Show this help message
 #
 # Examples:
@@ -19,6 +20,7 @@ set -euo pipefail
 # Default options
 AUTO_MODE=false
 DRY_RUN=false
+FORCE_MODE=false
 MANUAL_VERSION=""
 TITLE=""
 
@@ -31,6 +33,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --dry-run)
             DRY_RUN=true
+            shift
+            ;;
+        --force)
+            FORCE_MODE=true
             shift
             ;;
         --help)
@@ -52,6 +58,36 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+# Check git working directory status (skip for dry-run or force mode)
+if [ "$DRY_RUN" = false ] && [ "$FORCE_MODE" = false ]; then
+    echo "Checking git working directory status..."
+    
+    # Check for uncommitted changes
+    if ! git diff-index --quiet HEAD --; then
+        echo "Error: Working directory has uncommitted changes."
+        echo "Please commit or stash your changes before creating a release."
+        echo "Use --force to override this check."
+        echo ""
+        echo "Uncommitted changes:"
+        git status --porcelain
+        exit 1
+    fi
+    
+    # Check for untracked files (excluding common temporary files)
+    UNTRACKED=$(git ls-files --others --exclude-standard | grep -v -E '(release_notes\.md|\.DS_Store|node_modules|\.env)' || true)
+    if [ -n "$UNTRACKED" ]; then
+        echo "Error: Working directory has untracked files:"
+        echo "$UNTRACKED"
+        echo ""
+        echo "Please track important files with 'git add' or use --force to override."
+        exit 1
+    fi
+    
+    echo "✓ Working directory is clean"
+elif [ "$FORCE_MODE" = true ]; then
+    echo "⚠️  Skipping git working directory validation (--force mode)"
+fi
 
 # Check if gh is installed (skip for dry-run)
 if [ "$DRY_RUN" = false ] && ! command -v gh >/dev/null 2>&1; then
