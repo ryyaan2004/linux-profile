@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Create a new GitHub release with auto-generated changelog
-# Usage: ./create-release.sh [options] [version] [title]
+# Usage: scripts/create-release.sh [options] [version] [title]
 # 
 # Options:
 #   --auto      Automatically calculate version and create release without prompts
@@ -10,10 +10,10 @@
 #   --help      Show this help message
 #
 # Examples:
-#   ./create-release.sh                    # Interactive mode (suggests version)
-#   ./create-release.sh --auto             # Automatic mode (no prompts)
-#   ./create-release.sh --dry-run          # Preview calculated version and notes
-#   ./create-release.sh v0.2.0 "Title"    # Manual version specification
+#   scripts/create-release.sh                    # Interactive mode (suggests version)
+#   scripts/create-release.sh --auto             # Automatic mode (no prompts)
+#   scripts/create-release.sh --dry-run          # Preview calculated version and notes
+#   scripts/create-release.sh v0.2.0 "Title"    # Manual version specification
 
 set -euo pipefail
 
@@ -261,22 +261,22 @@ if command -v git-cliff >/dev/null 2>&1; then
     if [ "$RANGE" = "HEAD" ]; then
         git-cliff --strip header --output "$TEMP_NOTES" 2>/dev/null || {
             echo "git-cliff failed, falling back to custom script..."
-            ./generate-release-notes.sh > /dev/null 2>&1
+            "$(dirname "$0")/generate-release-notes.sh" > /dev/null 2>&1
             cp release_notes.md "$TEMP_NOTES"
         }
     else
         git-cliff "$RANGE" --strip header --output "$TEMP_NOTES" 2>/dev/null || {
             echo "git-cliff failed, falling back to custom script..."
-            ./generate-release-notes.sh "$RANGE" > /dev/null 2>&1
+            "$(dirname "$0")/generate-release-notes.sh" "$RANGE" > /dev/null 2>&1
             cp release_notes.md "$TEMP_NOTES"
         }
     fi
 else
     echo "git-cliff not found, using custom script..."
     if [ "$RANGE" = "HEAD" ]; then
-        ./generate-release-notes.sh > /dev/null 2>&1
+        "$(dirname "$0")/generate-release-notes.sh" > /dev/null 2>&1
     else
-        ./generate-release-notes.sh "$RANGE" > /dev/null 2>&1
+        "$(dirname "$0")/generate-release-notes.sh" "$RANGE" > /dev/null 2>&1
     fi
     cp release_notes.md "$TEMP_NOTES"
 fi

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Generate categorized release notes from conventional commits since last tag
-# Usage: ./generate-release-notes.sh [options] [tag-range]
+# Usage: scripts/generate-release-notes.sh [options] [tag-range]
 # Output: release_notes.md
 #
 # Arguments:
@@ -11,9 +11,9 @@
 #   --help      Show this help message
 #
 # Examples:
-#   ./generate-release-notes.sh                    # Auto-detect range from last tag
-#   ./generate-release-notes.sh v0.1.0..HEAD      # Specify custom range
-#   ./generate-release-notes.sh --help            # Show help
+#   scripts/generate-release-notes.sh                    # Auto-detect range from last tag
+#   scripts/generate-release-notes.sh v0.1.0..HEAD      # Specify custom range
+#   scripts/generate-release-notes.sh --help            # Show help
 #
 # The script categorizes conventional commits into sections like:
 #   - Features (feat:)
