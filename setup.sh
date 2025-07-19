@@ -25,7 +25,7 @@ function append_string_to_file() {
 
 	local file="${1}"
 	local msg="${2}"
-	echo "${msg}" >> ${file}
+	echo "${msg}" >> "${file}"
 }
 
 function test_for_line() {
@@ -36,7 +36,8 @@ function test_for_line() {
 		echo "There was a problem reading file '${1}'"
 		exit 1
 	fi
-	local existy=$(grep -x "${2}" "${1}")
+	local existy
+	existy=$(grep -x "${2}" "${1}")
 	if [ -z "${existy}" ]
 	then
 		return 1
@@ -103,16 +104,16 @@ test_for_line "${PROFILE}" "^${FOOTER}$"
 FOOTER_EXISTS=$?
 
 # since the profile can get into inconsistent states, ensure that we can work with what's there
-if [ "${HEADER_EXISTS}" -eq "${EXISTY}" ] && [ "${FOOTER_EXISTS}" -eq "${EXISTY}" ]
+if [ "${HEADER_EXISTS}" -eq 0 ] && [ "${FOOTER_EXISTS}" -eq 0 ]
 then
 	remove_all_lines_in_range "${PROFILE}" "${HEADER}" "${FOOTER}"
-elif [ "${FOOTER_EXISTS}" -eq "${EXISTY}" ]
+elif [ "${FOOTER_EXISTS}" -eq 0 ]
 then
-	printf "existing profile in incompatible state, only the footer exists. please remove '${FOOTER}' and all managed data then rerun this script\n"
+	printf "existing profile in incompatible state, only the footer exists. please remove '%s' and all managed data then rerun this script\n" "${FOOTER}"
 	exit 1
-elif [ "${HEADER_EXISTS}" -eq "${EXISTY}" ]
+elif [ "${HEADER_EXISTS}" -eq 0 ]
 then
-	printf "existing profile in incompatible state, only the header exists. please remove '${HEADER}' and all managed data then rerun this script\n"
+	printf "existing profile in incompatible state, only the header exists. please remove '%s' and all managed data then rerun this script\n" "${HEADER}"
 	exit 1
 else
 	: 
@@ -122,7 +123,7 @@ i=0
 # copy all from workspace/conf to HOME
 while IFS= read -r -d '' filepath; do
 	file=$(basename "$filepath")
-	CONF_ARR[$i]="${COPY_CONF_TO}/${file}"
+	CONF_ARR[i]="${COPY_CONF_TO}/${file}"
 	cp "$filepath" "${CONF_ARR[$i]}"
 	(( i++ ))
 done < <(find conf/ -maxdepth 1 -type f -print0)
@@ -134,7 +135,7 @@ i=0
 # copy all from workspace/bin to HOME/bin
 while IFS= read -r -d '' filepath; do
 	file=$(basename "$filepath")
-	BIN_ARR[$i]="${COPY_BIN_TO}/${file}"
+	BIN_ARR[i]="${COPY_BIN_TO}/${file}"
 	cp "$filepath" "${BIN_ARR[$i]}"
 	(( i++ ))
 done < <(find bin/ -maxdepth 1 -type f -print0)
@@ -146,7 +147,7 @@ append_string_to_file "${PROFILE}" "${HEADER}"
 for entry in "${CONF_ARR[@]}"
 do
 	filename=$(basename "${entry}")
-	if [[ "${EXCLUSIONS}" =~ "${filename}" ]]
+	if [[ "${EXCLUSIONS}" =~ ${filename} ]]
 	then
 		:
 	else
@@ -157,7 +158,7 @@ done
 for entry in "${BIN_ARR[@]}"
 do
 	filename=$(basename "${entry}")
-	if [[ "${EXCLUSIONS}" =~ "${filename}" ]]
+	if [[ "${EXCLUSIONS}" =~ ${filename} ]]
 	then
 		:
 	else
@@ -169,4 +170,4 @@ done
 append_string_to_file "${PROFILE}" "${FOOTER}"
 
 # source the profile
-source ${PROFILE}
+source "${PROFILE}"
