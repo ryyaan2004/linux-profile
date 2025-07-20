@@ -173,6 +173,10 @@ calculate_next_version() {
     fi
 }
 
+# Fetch latest tags from remote to ensure we have current information
+echo "Fetching latest tags from remote..."
+git fetch origin --tags >/dev/null 2>&1
+
 # Get the last tag to determine range
 LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
 if [ -z "$LAST_TAG" ]; then
