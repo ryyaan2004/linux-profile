@@ -1,14 +1,49 @@
 #!/bin/bash
 
 # Generate categorized release notes from conventional commits since last tag
-# Usage: ./generate-release-notes.sh [tag-range]
+# Usage: scripts/generate-release-notes.sh [options] [tag-range]
 # Output: release_notes.md
+#
+# Arguments:
+#   tag-range   Git range like 'v1.0.0..HEAD' (optional, auto-detects if omitted)
+#
+# Options:
+#   --help      Show this help message
+#
+# Examples:
+#   scripts/generate-release-notes.sh                    # Auto-detect range from last tag
+#   scripts/generate-release-notes.sh v0.1.0..HEAD      # Specify custom range
+#   scripts/generate-release-notes.sh --help            # Show help
+#
+# The script categorizes conventional commits into sections like:
+#   - Features (feat:)
+#   - Bug Fixes (fix:)  
+#   - Documentation (docs:)
+#   - Build System (build:)
+#   - And other commit types
 
 set -euo pipefail
 
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --help)
+            sed -n '3,22p' "$0" | sed 's/^# //' | sed 's/^#$//'
+            exit 0
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
 # Get the range to analyze
 if [ $# -eq 1 ]; then
-    RANGE="${1}..HEAD"
+    if [[ "$1" == *..* ]]; then
+        RANGE="$1"
+    else
+        RANGE="${1}..HEAD"
+    fi
 else
     LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
     if [ -z "${LAST_TAG}" ]; then

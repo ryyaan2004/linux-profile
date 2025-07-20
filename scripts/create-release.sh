@@ -1,24 +1,26 @@
 #!/bin/bash
 
 # Create a new GitHub release with auto-generated changelog
-# Usage: ./create-release.sh [options] [version] [title]
+# Usage: scripts/create-release.sh [options] [version] [title]
 # 
 # Options:
 #   --auto      Automatically calculate version and create release without prompts
 #   --dry-run   Show what would happen without creating the release
+#   --force     Skip git working directory validation
 #   --help      Show this help message
 #
 # Examples:
-#   ./create-release.sh                    # Interactive mode (suggests version)
-#   ./create-release.sh --auto             # Automatic mode (no prompts)
-#   ./create-release.sh --dry-run          # Preview calculated version and notes
-#   ./create-release.sh v0.2.0 "Title"    # Manual version specification
+#   scripts/create-release.sh                    # Interactive mode (suggests version)
+#   scripts/create-release.sh --auto             # Automatic mode (no prompts)
+#   scripts/create-release.sh --dry-run          # Preview calculated version and notes
+#   scripts/create-release.sh v0.2.0 "Title"    # Manual version specification
 
 set -euo pipefail
 
 # Default options
 AUTO_MODE=false
 DRY_RUN=false
+FORCE_MODE=false
 MANUAL_VERSION=""
 TITLE=""
 
@@ -33,8 +35,12 @@ while [[ $# -gt 0 ]]; do
             DRY_RUN=true
             shift
             ;;
+        --force)
+            FORCE_MODE=true
+            shift
+            ;;
         --help)
-            sed -n '3,15p' "$0" | sed 's/^# //'
+            sed -n '3,15p' "$0" | sed 's/^# //' | sed 's/^#$//'
             exit 0
             ;;
         v*)
@@ -52,6 +58,36 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+# Check git working directory status (skip for dry-run or force mode)
+if [ "$DRY_RUN" = false ] && [ "$FORCE_MODE" = false ]; then
+    echo "Checking git working directory status..."
+    
+    # Check for uncommitted changes
+    if ! git diff-index --quiet HEAD --; then
+        echo "Error: Working directory has uncommitted changes."
+        echo "Please commit or stash your changes before creating a release."
+        echo "Use --force to override this check."
+        echo ""
+        echo "Uncommitted changes:"
+        git status --porcelain
+        exit 1
+    fi
+    
+    # Check for untracked files (excluding common temporary files)
+    UNTRACKED=$(git ls-files --others --exclude-standard | grep -v -E '(release_notes\.md|\.DS_Store|node_modules|\.env)' || true)
+    if [ -n "$UNTRACKED" ]; then
+        echo "Error: Working directory has untracked files:"
+        echo "$UNTRACKED"
+        echo ""
+        echo "Please track important files with 'git add' or use --force to override."
+        exit 1
+    fi
+    
+    echo "✓ Working directory is clean"
+elif [ "$FORCE_MODE" = true ]; then
+    echo "⚠️  Skipping git working directory validation (--force mode)"
+fi
 
 # Check if gh is installed (skip for dry-run)
 if [ "$DRY_RUN" = false ] && ! command -v gh >/dev/null 2>&1; then
@@ -99,9 +135,11 @@ calculate_next_version() {
     
     if [ "$range" = "HEAD" ]; then
         # No previous tags, analyze all commits
-        local commits=$(git log --pretty=format:"%s" 2>/dev/null || echo "")
+        local commits
+        commits=$(git log --pretty=format:"%s" 2>/dev/null || echo "")
     else
-        local commits=$(git log "$range" --pretty=format:"%s" 2>/dev/null || echo "")
+        local commits
+        commits=$(git log "$range" --pretty=format:"%s" 2>/dev/null || echo "")
     fi
     
     while IFS= read -r commit; do
@@ -225,22 +263,22 @@ if command -v git-cliff >/dev/null 2>&1; then
     if [ "$RANGE" = "HEAD" ]; then
         git-cliff --strip header --output "$TEMP_NOTES" 2>/dev/null || {
             echo "git-cliff failed, falling back to custom script..."
-            ./generate-release-notes.sh > /dev/null 2>&1
+            "$(dirname "$0")/generate-release-notes.sh" > /dev/null 2>&1
             cp release_notes.md "$TEMP_NOTES"
         }
     else
         git-cliff "$RANGE" --strip header --output "$TEMP_NOTES" 2>/dev/null || {
             echo "git-cliff failed, falling back to custom script..."
-            ./generate-release-notes.sh "$RANGE" > /dev/null 2>&1
+            "$(dirname "$0")/generate-release-notes.sh" "$RANGE" > /dev/null 2>&1
             cp release_notes.md "$TEMP_NOTES"
         }
     fi
 else
     echo "git-cliff not found, using custom script..."
     if [ "$RANGE" = "HEAD" ]; then
-        ./generate-release-notes.sh > /dev/null 2>&1
+        "$(dirname "$0")/generate-release-notes.sh" > /dev/null 2>&1
     else
-        ./generate-release-notes.sh "$RANGE" > /dev/null 2>&1
+        "$(dirname "$0")/generate-release-notes.sh" "$RANGE" > /dev/null 2>&1
     fi
     cp release_notes.md "$TEMP_NOTES"
 fi
