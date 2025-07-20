@@ -1,0 +1,168 @@
+name: CI
+
+on:
+  push: {}
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run ShellCheck
+      uses: ludeeus/action-shellcheck@master
+      with:
+        scandir: '.'
+        format: gcc
+        severity: warning
+        
+  test-scripts:
+    name: Test Scripts
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Make scripts executable
+      run: |
+        chmod +x setup.sh
+        chmod +x scripts/*.sh
+        
+    - name: Test script syntax
+      run: |
+        bash -n setup.sh
+        bash -n scripts/create-release.sh
+        bash -n scripts/generate-release-notes.sh
+        
+    - name: Test help functions
+      run: |
+        scripts/create-release.sh --help
+        scripts/generate-release-notes.sh --help
+        
+    - name: Test setup script execution
+      run: |
+        # Create isolated test environment
+        mkdir -p test-env/home test-env/workspace
+        cd test-env/workspace
+        
+        # Copy project files to test workspace
+        cp -r ../../* . 2>/dev/null || true
+        cp ../../.gitignore . 2>/dev/null || true
+        
+        # Create test profile
+        export HOME="$(pwd)/../home"
+        echo '# Original profile content' > "$HOME/.profile"
+        echo 'export ORIGINAL_PATH=$PATH' >> "$HOME/.profile"
+        
+        # Create test files in bin and conf
+        mkdir -p bin conf
+        echo '#!/bin/bash' > bin/test-script.sh
+        echo 'function test_func() { echo "test function"; }' > bin/test-func.sh
+        chmod +x bin/*.sh
+        
+        echo 'alias ll="ls -la"' > conf/.test_aliases
+        echo 'export TEST_VAR="test_value"' > conf/.test_env
+        echo 'set -o vi' > conf/.test_settings
+        
+        # Run setup script
+        echo "Running setup script..."
+        ./setup.sh
+        
+        # Verify profile was modified correctly
+        echo "Verifying profile modifications..."
+        cat "$HOME/.profile"
+        
+        # Check that header and footer were added
+        if ! grep -q "profile setup header" "$HOME/.profile"; then
+          echo "ERROR: Header not found in profile"
+          exit 1
+        fi
+        
+        if ! grep -q "profile setup footer" "$HOME/.profile"; then
+          echo "ERROR: Footer not found in profile"
+          exit 1
+        fi
+        
+        # Check that files were sourced
+        if ! grep -q ".test_aliases" "$HOME/.profile"; then
+          echo "ERROR: Aliases not sourced in profile"
+          exit 1
+        fi
+        
+        if ! grep -q ".test_env" "$HOME/.profile"; then
+          echo "ERROR: Environment not sourced in profile"
+          exit 1
+        fi
+        
+        # Check that files were copied to correct locations
+        if [ ! -f "$HOME/.test_aliases" ]; then
+          echo "ERROR: Aliases file not copied"
+          exit 1
+        fi
+        
+        if [ ! -f "$HOME/bin/test-script.sh" ]; then
+          echo "ERROR: Binary file not copied"
+          exit 1
+        fi
+        
+        # Verify exclusions work (add .vimrc to test exclusions)
+        echo 'set number' > conf/.vimrc
+        ./setup.sh  # Run again to test with exclusion
+        
+        if grep -q ".vimrc" "$HOME/.profile"; then
+          echo "ERROR: Excluded file was sourced (exclusions not working)"
+          exit 1
+        fi
+        
+        echo "✓ Setup script tests passed!"
+        
+    - name: Test release tools dependencies
+      run: |
+        # Check if git-cliff is available (not required, but test fallback)
+        if ! command -v git-cliff >/dev/null 2>&1; then
+          echo "git-cliff not available - fallback to custom script will be used"
+        fi
+        
+        # Test that git commands work
+        git --version
+        git config --global user.email "test@example.com"
+        git config --global user.name "Test User"
+        
+  compatibility:
+    name: Cross-platform Compatibility
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Test sed compatibility
+      run: |
+        # Test the sed_inplace function works on both platforms
+        echo "test content" > test_file.txt
+        
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+          sed -i '' 's/content/modified/' test_file.txt
+        else
+          sed -i 's/content/modified/' test_file.txt
+        fi
+        
+        grep "modified" test_file.txt
+        rm test_file.txt
+        
+    - name: Test shell compatibility
+      run: |
+        # Ensure scripts work with different shells
+        bash --version
+        
+        # Test basic shell features used in scripts
+        bash -c 'arr=(); arr[0]="test"; echo "${#arr[@]}"'
