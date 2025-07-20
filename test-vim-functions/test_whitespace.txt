@@ -1,0 +1,12 @@
+This file has mixed whitespace:
+	Some lines have tabs
+    Some lines have spaces
+	And	some	have	multiple	tabs
+    And    multiple    spaces
+
+There are also trailing spaces here:   
+And here:	
+Empty lines with different whitespace:
+
+	
+    
