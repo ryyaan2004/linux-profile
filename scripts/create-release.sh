@@ -135,9 +135,11 @@ calculate_next_version() {
     
     if [ "$range" = "HEAD" ]; then
         # No previous tags, analyze all commits
-        local commits=$(git log --pretty=format:"%s" 2>/dev/null || echo "")
+        local commits
+        commits=$(git log --pretty=format:"%s" 2>/dev/null || echo "")
     else
-        local commits=$(git log "$range" --pretty=format:"%s" 2>/dev/null || echo "")
+        local commits
+        commits=$(git log "$range" --pretty=format:"%s" 2>/dev/null || echo "")
     fi
     
     while IFS= read -r commit; do
